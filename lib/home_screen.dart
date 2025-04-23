@@ -7,10 +7,34 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   double _width = 200;
   double _opacity = 0.3;
   double _radius = 4;
+
+  late AnimationController _animationController;
+
+  late Animation<double> _rotationAnimation;
+  late Animation<AlignmentGeometry> _alignmentAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 3),
+    );
+    _rotationAnimation = Tween<double>(begin: 0, end: 2).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _alignmentAnimation = Tween<AlignmentGeometry>(
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _animationController.repeat(reverse: true);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,29 +79,43 @@ class _HomeScreenState extends State<HomeScreen> {
           SizedBox(height: 20),
           TweenAnimationBuilder(
             tween: Tween<double>(begin: 0, end: _radius),
-            curve: Curves.bounceIn,
+            curve: Curves.easeIn,
             duration: Duration(seconds: 1),
             builder: (context, value, child) {
-              return GestureDetector(
-                onTap: () {
-                  _radius = _radius == 4 ? 30 : 4;
-                  setState(() {});
-                },
-                child: Card(
-                  color: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(value),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text("Click Here"),
-                  ),
-                ),
-              );
+              return child!;
             },
+            child: GestureDetector(
+              onTap: () {
+                _radius = _radius == 4 ? 30 : 4;
+                setState(() {});
+              },
+              child: Card(
+                color: Colors.blue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(_radius),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text("Click Here"),
+                ),
+              ),
+            ),
+          ),
+          AlignTransition(
+            alignment: _alignmentAnimation,
+            child: RotationTransition(
+              turns: _rotationAnimation,
+              child: Container(width: 30, height: 30, color: Colors.purple),
+            ),
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 }
